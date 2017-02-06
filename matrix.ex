@@ -38,7 +38,10 @@ defmodule Matrix do
 
 
   def transpose(n_by_m) do
-   
+      
+    # Ensure matrix is 2D (ex. [1, 2] -> [[1, 2]])
+    n_by_m = if Enum.all?(n_by_m, fn(x) -> is_list(x) end), do: n_by_m, else: [n_by_m]
+
     n_size = Enum.count(n_by_m)
     m_size = Enum.at(n_by_m, 0) |> Enum.count
 

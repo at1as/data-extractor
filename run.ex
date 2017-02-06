@@ -87,10 +87,10 @@ defmodule DataExtractor do
     target = cleanup_str(target) |> String.downcase
     
     cond do
-      String.match?(target, ~r/[\d]+$/) ->
+      String.match?(target, ~r/^[\d]+$/) ->
         target
 
-      String.match?(target, ~r/[0-9]+\-[0-9]+$/) ->
+      String.match?(target, ~r/^[0-9]+\-[0-9]+$/) ->
         get_range(target)
 
       "all" == target ->
@@ -152,15 +152,18 @@ defmodule DataExtractor do
       is_atom(bounds) and bounds == :all ->
         line_portions
 
-      Integer.parse(bounds) != :error ->
-        Enum.at(line_portions, Integer.parse(bounds))
-
       is_bitstring(bounds) and (String.split(bounds, "-") |> Enum.count == 2) ->
-        [first, second] = String.split("-", bounds) |>
-                          Enum.map(fn x -> Integer.parse(x) end)
+        [first, second] = String.split(bounds, "-") |>
+                          Enum.map(fn x -> 
+                            Enum.at(Tuple.to_list(Integer.parse(x)), 0)
+                          end)
 
         Enum.drop(line_portions, first) |>
-        Enum.take(first + second)
+        Enum.take(second)
+      
+      
+      Integer.parse(bounds) != :error ->
+        Enum.at(line_portions, Enum.at(Tuple.to_list(Integer.parse(bounds)), 0))
       
       true ->
         :error
@@ -182,7 +185,7 @@ defmodule DataExtractor do
     matrix = Enum.map(file_lines, fn(x) ->
       extract_from_line(x, type, columns) 
     end)
-   
+    
     transposed_matrix = Matrix.transpose(matrix)
 
     transposed_matrix |> Enum.map(fn(x) -> operation(x, operation) end)
@@ -194,15 +197,15 @@ defmodule DataExtractor do
           Enum.map(fn {x, _} -> x end)
 
     case operation do
-      "1"  -> Enum.sum(row)
-      "2"  -> Enum.reduce(row, fn x, acc -> acc - x end)
-      "3"  -> Enum.reduce(row, fn x, acc -> acc * x end)
-      "4"  -> Enum.reduce(row, fn x, acc -> acc + x end) / Enum.count(row)
+      "1"  -> [ Enum.sum(row) ]
+      "2"  -> [ Enum.reduce(row, fn x, acc -> acc - x end) ]
+      "3"  -> [ Enum.reduce(row, fn x, acc -> acc * x end) ]
+      "4"  -> [ Enum.reduce(row, fn x, acc -> acc + x end) / Enum.count(row) ]
       "5"  -> row #MEDIAN
       "6"  -> row #STD DEVIATION
-      "7"  -> Enum.max(row)
-      "8"  -> Enum.min(row)
-      "9"  -> Enum.random(row)
+      "7"  -> [ Enum.max(row) ]
+      "8"  -> [ Enum.min(row) ]
+      "9"  -> [ Enum.random(row) ]
       "10" -> Enum.filter(row, fn(x) -> String.match?("#{x}", ~r/^[0-9.]+$/) end)       # NUMERIC
       "11" -> Enum.filter(row, fn(x) -> String.match?("#{x}", ~r/^[a-zA-Z.]+$/) end)    # NON NUMERIC
       "12" -> Enum.filter(row, fn(x) -> String.match?("#{x}", ~r/^[a-zA-Z0-9.]+$/) end) # ALPHANUMERIC
@@ -211,22 +214,52 @@ defmodule DataExtractor do
 
 
   def main do
-    filename  = get_filepath
-    filetype  = prompt_for_filetype
-    columns   = target_columns
-    operation = operation_type
+    #filename  = get_filepath
+    #filetype  = prompt_for_filetype
+    #columns   = target_columns
+    #operation = operation_type
 
-    extract_from_file(filename, filetype, columns, operation)
+    #extract_from_file(filename, filetype, columns, operation)
     ## DEBUG
-    #IO.inspect extract_from_file("example", ",", :all, "1") ## FOR DEBUG
-    #IO.inspect extract_from_file("example", ",", :all, "2") ## FOR DEBUG
-    #IO.inspect extract_from_file("example", ",", :all, "3") ## FOR DEBUG
-    #IO.inspect extract_from_file("example", ",", :all, "4") ## FOR DEBUG
-    #IO.inspect extract_from_file("example", ",", :all, "7") ## FOR DEBUG
-    #IO.inspect extract_from_file("example", ",", :all, "8") ## FOR DEBUG
-    #IO.inspect extract_from_file("example", ",", :all, "9") ## FOR DEBUG
-    #IO.inspect extract_from_file("example", ",", :all, "10") ## FOR DEBUG
-    #IO.inspect extract_from_file("example", ",", :all, "11") ## FOR DEBUG
-    #IO.inspect extract_from_file("example", ",", :all, "12") ## FOR DEBUG
+    IO.puts "\nALL\n"
+
+    IO.inspect extract_from_file("example", ",", :all, "1") ## FOR DEBUG
+    IO.inspect extract_from_file("example", ",", :all, "2") ## FOR DEBUG
+    IO.inspect extract_from_file("example", ",", :all, "3") ## FOR DEBUG
+    IO.inspect extract_from_file("example", ",", :all, "4") ## FOR DEBUG
+    IO.inspect extract_from_file("example", ",", :all, "7") ## FOR DEBUG
+    IO.inspect extract_from_file("example", ",", :all, "8") ## FOR DEBUG
+    IO.inspect extract_from_file("example", ",", :all, "9") ## FOR DEBUG
+    IO.inspect extract_from_file("example", ",", :all, "10") ## FOR DEBUG
+    IO.inspect extract_from_file("example", ",", :all, "11") ## FOR DEBUG
+    IO.inspect extract_from_file("example", ",", :all, "12") ## FOR DEBUG
+
+    IO.puts "\n2\n"
+    """    
+    IO.inspect extract_from_file("example", ",", "2", "1") ## FOR DEBUG
+    IO.inspect extract_from_file("example", ",", "2", "2") ## FOR DEBUG
+    IO.inspect extract_from_file("example", ",", "2", "3") ## FOR DEBUG
+    IO.inspect extract_from_file("example", ",", "2", "4") ## FOR DEBUG
+    IO.inspect extract_from_file("example", ",", "2", "7") ## FOR DEBUG
+    IO.inspect extract_from_file("example", ",", "2", "8") ## FOR DEBUG
+    IO.inspect extract_from_file("example", ",", "2", "9") ## FOR DEBUG
+    IO.inspect extract_from_file("example", ",", "2", "10") ## FOR DEBUG
+    IO.inspect extract_from_file("example", ",", "2", "11") ## FOR DEBUG
+    IO.inspect extract_from_file("example", ",", "2", "12") ## FOR DEBUG
+    """
+    
+    IO.puts "\n2-7\n"
+
+    IO.inspect extract_from_file("example", ",", "2-7", "1") ## FOR DEBUG
+    IO.inspect extract_from_file("example", ",", "2-7", "2") ## FOR DEBUG
+    IO.inspect extract_from_file("example", ",", "2-7", "3") ## FOR DEBUG
+    IO.inspect extract_from_file("example", ",", "2-7", "4") ## FOR DEBUG
+    IO.inspect extract_from_file("example", ",", "2-7", "7") ## FOR DEBUG
+    IO.inspect extract_from_file("example", ",", "2-7", "8") ## FOR DEBUG
+    IO.inspect extract_from_file("example", ",", "2-7", "9") ## FOR DEBUG
+    IO.inspect extract_from_file("example", ",", "2-7", "10") ## FOR DEBUG
+    IO.inspect extract_from_file("example", ",", "2-7", "11") ## FOR DEBUG
+    IO.inspect extract_from_file("example", ",", "2-7", "12") ## FOR DEBUG
+
   end
 end
