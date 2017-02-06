@@ -1,4 +1,5 @@
 require IEx
+require Matrix
 
 defmodule DataExtractor do
   
@@ -9,15 +10,12 @@ defmodule DataExtractor do
     String.trim(input_string, "\n") |> String.trim("\n") |> String.trim(" ")
   end
 
+
   def get_range(range_str) do
     {from, to} = String.split(range_str, "-")
     Range.new(from, to)
   end
 
-  def two_dimensional_matrix(row, col, matrix) do
-    
-  end
-  
 
   def get_filepath do
     filepath = IO.gets "\nWhere is your file located?\n"
@@ -178,30 +176,16 @@ defmodule DataExtractor do
 
   def extract_from_file(path, type, columns, operation) do
     {:ok, file} = File.read(path)
-    file_lines  = String.split(file, "\n")
-                  |> Enum.reject(fn(x) -> x == "" end)
-    
+    file_lines  = String.split(file, "\n") |>
+                  Enum.reject(fn(x) -> x == "" end)
     
     matrix = Enum.map(file_lines, fn(x) ->
       extract_from_line(x, type, columns) 
     end)
-    
-    matrix = Enum.map(matrix, fn(x) -> operation(x, operation) end)
-    """
-    # transpose matrix
-    new_matrix = []
-    x = Enum.count(matrix)
-    y = Enum.at(matrix, 0) |> Enum.count
+   
+    transposed_matrix = Matrix.transpose(matrix)
 
-    Enum.with_index(matrix, fn(r, idx1) ->
-      Enum.with_index(r, fn(c, idx2) ->
-        
-        
-
-      end)
-    end)
-    """
-    matrix 
+    transposed_matrix |> Enum.map(fn(x) -> operation(x, operation) end)
   end
 
 
@@ -219,9 +203,9 @@ defmodule DataExtractor do
       "7"  -> Enum.max(row)
       "8"  -> Enum.min(row)
       "9"  -> Enum.random(row)
-      "10" -> Enum.filter(row, fn(x) -> String.match?("#{x}", ~r/^[0-9]+$/) end)       # NUMERIC
-      "11" -> Enum.filter(row, fn(x) -> String.match?("#{x}", ~r/^[a-zA-Z]+$/) end)    # NON NUMERIC
-      "12" -> Enum.filter(row, fn(x) -> String.match?("#{x}", ~r/^[a-zA-Z0-9]+$/) end) # ALPHANUMERIC
+      "10" -> Enum.filter(row, fn(x) -> String.match?("#{x}", ~r/^[0-9.]+$/) end)       # NUMERIC
+      "11" -> Enum.filter(row, fn(x) -> String.match?("#{x}", ~r/^[a-zA-Z.]+$/) end)    # NON NUMERIC
+      "12" -> Enum.filter(row, fn(x) -> String.match?("#{x}", ~r/^[a-zA-Z0-9.]+$/) end) # ALPHANUMERIC
     end
   end
 
@@ -233,6 +217,16 @@ defmodule DataExtractor do
     operation = operation_type
 
     extract_from_file(filename, filetype, columns, operation)
+    ## DEBUG
     #IO.inspect extract_from_file("example", ",", :all, "1") ## FOR DEBUG
+    #IO.inspect extract_from_file("example", ",", :all, "2") ## FOR DEBUG
+    #IO.inspect extract_from_file("example", ",", :all, "3") ## FOR DEBUG
+    #IO.inspect extract_from_file("example", ",", :all, "4") ## FOR DEBUG
+    #IO.inspect extract_from_file("example", ",", :all, "7") ## FOR DEBUG
+    #IO.inspect extract_from_file("example", ",", :all, "8") ## FOR DEBUG
+    #IO.inspect extract_from_file("example", ",", :all, "9") ## FOR DEBUG
+    #IO.inspect extract_from_file("example", ",", :all, "10") ## FOR DEBUG
+    #IO.inspect extract_from_file("example", ",", :all, "11") ## FOR DEBUG
+    #IO.inspect extract_from_file("example", ",", :all, "12") ## FOR DEBUG
   end
 end
