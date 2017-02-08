@@ -1,4 +1,4 @@
-require IEx
+# require IEx
 require Matrix
 
 defmodule DataExtractor do
@@ -159,11 +159,11 @@ defmodule DataExtractor do
                           end)
 
         Enum.drop(line_portions, first) |>
-        Enum.take(second)
+        Enum.take(second - first)
       
       
       Integer.parse(bounds) != :error ->
-        Enum.at(line_portions, Enum.at(Tuple.to_list(Integer.parse(bounds)), 0))
+        [Enum.at(line_portions, Enum.at(Tuple.to_list(Integer.parse(bounds)), 0))]
       
       true ->
         :error
@@ -185,10 +185,12 @@ defmodule DataExtractor do
     matrix = Enum.map(file_lines, fn(x) ->
       extract_from_line(x, type, columns) 
     end)
-    
-    transposed_matrix = Matrix.transpose(matrix)
-
-    transposed_matrix |> Enum.map(fn(x) -> operation(x, operation) end)
+   
+    Matrix.transpose(matrix) |> Enum.map(fn(x) -> operation(x, operation) end) |> Matrix.transpose
+    #|> Enum.map(&Task.async(DataExtractor, operation, []))
+    #|> Enum.map(&Task.await(&1))
+    #|> Matrix.transpose
+    #|> Enum.map(fn(x) -> operation(x, operation) end) |> Matrix.transpose
   end
 
 
@@ -201,8 +203,8 @@ defmodule DataExtractor do
       "2"  -> [ Enum.reduce(row, fn x, acc -> acc - x end) ]
       "3"  -> [ Enum.reduce(row, fn x, acc -> acc * x end) ]
       "4"  -> [ Enum.reduce(row, fn x, acc -> acc + x end) / Enum.count(row) ]
-      "5"  -> row #MEDIAN
-      "6"  -> row #STD DEVIATION
+      "5"  -> row #TODO: MEDIAN
+      "6"  -> row #TODO: STD DEVIATION
       "7"  -> [ Enum.max(row) ]
       "8"  -> [ Enum.min(row) ]
       "9"  -> [ Enum.random(row) ]
@@ -212,30 +214,54 @@ defmodule DataExtractor do
     end
   end
 
+  
+  def printer(n_by_m_matrix, delimiter) do
+    Enum.each(n_by_m_matrix, fn(row) -> 
+      IO.puts Enum.join(row, delimiter)
+    end)
+  end
+
 
   def main do
-    #filename  = get_filepath
-    #filetype  = prompt_for_filetype
-    #columns   = target_columns
-    #operation = operation_type
+    filename  = get_filepath
+    filetype  = prompt_for_filetype
+    columns   = target_columns
+    operation = operation_type
 
-    #extract_from_file(filename, filetype, columns, operation)
+    extract_from_file(filename, filetype, columns, operation)
+  end
+
+  def test do 
+    IO.puts "Starting #{:os.system_time(:millisecond)}"
+    extract_from_file("./test/random_values.csv", ",", :all, "1") |> printer(", ")
+    IO.puts "Done #{:os.system_time(:millisecond)}"
+
+    """
     ## DEBUG
     IO.puts "\nALL\n"
-
-    IO.inspect extract_from_file("example", ",", :all, "1") ## FOR DEBUG
-    IO.inspect extract_from_file("example", ",", :all, "2") ## FOR DEBUG
-    IO.inspect extract_from_file("example", ",", :all, "3") ## FOR DEBUG
-    IO.inspect extract_from_file("example", ",", :all, "4") ## FOR DEBUG
-    IO.inspect extract_from_file("example", ",", :all, "7") ## FOR DEBUG
-    IO.inspect extract_from_file("example", ",", :all, "8") ## FOR DEBUG
-    IO.inspect extract_from_file("example", ",", :all, "9") ## FOR DEBUG
-    IO.inspect extract_from_file("example", ",", :all, "10") ## FOR DEBUG
-    IO.inspect extract_from_file("example", ",", :all, "11") ## FOR DEBUG
-    IO.inspect extract_from_file("example", ",", :all, "12") ## FOR DEBUG
-
+    extract_from_file("example", ",", :all, "1") |> printer(", ")
+    IO.puts "---"
+    extract_from_file("example", ",", :all, "2") |> printer(", ")
+    IO.puts "---"
+    extract_from_file("example", ",", :all, "3") |> printer(", ")
+    IO.puts "---"
+    extract_from_file("example", ",", :all, "4") |> printer(", ")
+    IO.puts "---"
+    extract_from_file("example", ",", :all, "7") |> printer(", ")
+    IO.puts "---"
+    extract_from_file("example", ",", :all, "8") |> printer(", ")
+    IO.puts "---"
+    extract_from_file("example", ",", :all, "9") |> printer(", ")
+    IO.puts "---"
+    extract_from_file("example", ",", :all, "10") |> printer(", ")
+    IO.puts "---"
+    extract_from_file("example", ",", :all, "11") |> printer(", ")
+    IO.puts "---"
+    extract_from_file("example", ",", :all, "12") |> printer(", ")
+    
+    
     IO.puts "\n2\n"
-    """    
+    
     IO.inspect extract_from_file("example", ",", "2", "1") ## FOR DEBUG
     IO.inspect extract_from_file("example", ",", "2", "2") ## FOR DEBUG
     IO.inspect extract_from_file("example", ",", "2", "3") ## FOR DEBUG
@@ -246,8 +272,8 @@ defmodule DataExtractor do
     IO.inspect extract_from_file("example", ",", "2", "10") ## FOR DEBUG
     IO.inspect extract_from_file("example", ",", "2", "11") ## FOR DEBUG
     IO.inspect extract_from_file("example", ",", "2", "12") ## FOR DEBUG
-    """
     
+
     IO.puts "\n2-7\n"
 
     IO.inspect extract_from_file("example", ",", "2-7", "1") ## FOR DEBUG
@@ -260,6 +286,7 @@ defmodule DataExtractor do
     IO.inspect extract_from_file("example", ",", "2-7", "10") ## FOR DEBUG
     IO.inspect extract_from_file("example", ",", "2-7", "11") ## FOR DEBUG
     IO.inspect extract_from_file("example", ",", "2-7", "12") ## FOR DEBUG
-
+    """
+    nil
   end
 end
