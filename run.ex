@@ -1,5 +1,6 @@
-# require IEx
+require IEx
 require Matrix
+require OptionParser
 
 defmodule DataExtractor do
   
@@ -7,12 +8,14 @@ defmodule DataExtractor do
 
 
   def cleanup_str(input_string) do
-    String.trim(input_string, "\n") |> String.trim("\n") |> String.trim(" ")
+    input_string
+    |> String.trim("\n")
+    |> String.trim(" ")
   end
 
 
   def get_range(range_str) do
-    {from, to} = String.split(range_str, "-")
+    [from, to] = String.split(range_str, "-")
     Range.new(from, to)
   end
 
@@ -25,7 +28,7 @@ defmodule DataExtractor do
       filepath
     else
       IO.puts "File not found."
-      get_filepath
+      get_filepath()
     end
   end
 
@@ -66,7 +69,7 @@ defmodule DataExtractor do
       "4" -> "|"
        _  ->
         IO.puts "Please enter a valid option"
-        prompt_for_filetype
+        prompt_for_filetype()
     end
   end
 
@@ -98,7 +101,7 @@ defmodule DataExtractor do
 
       true ->
         IO.puts "Please enter a valid value"
-        target_columns
+        target_columns()
     end
   end
 
@@ -137,7 +140,7 @@ defmodule DataExtractor do
         operation
       true ->
         IO.puts "Enter a valid integer value"
-        operation_type
+        operation_type()
     end
   end
 
@@ -159,7 +162,7 @@ defmodule DataExtractor do
                           end)
 
         Enum.drop(line_portions, first) |>
-        Enum.take(second - first)
+        Enum.take(second - first + 1)
       
       
       Integer.parse(bounds) != :error ->
@@ -186,11 +189,29 @@ defmodule DataExtractor do
       extract_from_line(x, type, columns) 
     end)
    
-    Matrix.transpose(matrix) |> Enum.map(fn(x) -> operation(x, operation) end) |> Matrix.transpose
-    #|> Enum.map(&Task.async(DataExtractor, operation, []))
-    #|> Enum.map(&Task.await(&1))
-    #|> Matrix.transpose
-    #|> Enum.map(fn(x) -> operation(x, operation) end) |> Matrix.transpose
+    Matrix.transpose(matrix)  
+    |> Task.async_stream(DataExtractor, :operation, [operation])
+    |> Enum.map(fn {:ok, row} -> row end)
+    |> Matrix.transpose
+  end
+
+
+  def median(row) do
+    len = Enum.count(row)
+    
+    cond do
+      rem(row, 2) == 0 ->
+        sorted_list = Enum.sort
+        first  = sorted_list.at(round(len/2))
+        second = sorted_list.at(round(len/2) + 1)
+
+        (first + second)/2
+
+      rem(row, 2) == 1 ->
+        row
+        |> Enum.sort
+        |> List.at(round(((len - 1)/2) + 1))
+    end
   end
 
 
@@ -203,7 +224,7 @@ defmodule DataExtractor do
       "2"  -> [ Enum.reduce(row, fn x, acc -> acc - x end) ]
       "3"  -> [ Enum.reduce(row, fn x, acc -> acc * x end) ]
       "4"  -> [ Enum.reduce(row, fn x, acc -> acc + x end) / Enum.count(row) ]
-      "5"  -> row #TODO: MEDIAN
+      "5"  -> [ median(row) ]
       "6"  -> row #TODO: STD DEVIATION
       "7"  -> [ Enum.max(row) ]
       "8"  -> [ Enum.min(row) ]
@@ -223,19 +244,29 @@ defmodule DataExtractor do
 
 
   def main do
-    filename  = get_filepath
-    filetype  = prompt_for_filetype
-    columns   = target_columns
-    operation = operation_type
+    OptionParser.parse(System.argv())
+
+    filename  = get_filepath()
+    filetype  = prompt_for_filetype()
+    columns   = target_columns()
+    operation = operation_type()
 
     extract_from_file(filename, filetype, columns, operation)
   end
 
-  def test do 
-    IO.puts "Starting #{:os.system_time(:millisecond)}"
-    extract_from_file("./test/random_values.csv", ",", :all, "1") |> printer(", ")
-    IO.puts "Done #{:os.system_time(:millisecond)}"
 
+  def test do
+
+    #IO.puts "SUM:"
+
+    #IO.puts "Starting #{:os.system_time(:millisecond)}\n"
+    #extract_from_file("./test/random_values.csv", ",", :all, "1") |> printer(", ")
+    #IO.puts "Done #{:os.system_time(:millisecond)}\n"
+
+    #IO.puts "Extract Cells"
+    #IO.puts "Starting #{:os.system_time(:millisecond)}\n"
+    #extract_from_file("./test/random_values.csv", ",", :all, "11") |> printer(", ")
+    #IO.puts "Done #{:os.system_time(:millisecond)}\n"
     """
     ## DEBUG
     IO.puts "\nALL\n"
@@ -246,6 +277,8 @@ defmodule DataExtractor do
     extract_from_file("example", ",", :all, "3") |> printer(", ")
     IO.puts "---"
     extract_from_file("example", ",", :all, "4") |> printer(", ")
+    IO.puts "---"
+    extract_from_file("example", ",", :all, "5") |> printer(", ")
     IO.puts "---"
     extract_from_file("example", ",", :all, "7") |> printer(", ")
     IO.puts "---"

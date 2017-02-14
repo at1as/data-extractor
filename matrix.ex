@@ -38,56 +38,22 @@ defmodule Matrix do
 
 
   def transpose(n_by_m) do
-      
     # Ensure matrix is 2D (ex. [1, 2] -> [[1, 2]])
     n_by_m = if Enum.all?(n_by_m, fn(x) -> is_list(x) end), do: n_by_m, else: [n_by_m]
 
-    n_size = Enum.count(n_by_m)
-    m_size = Enum.at(n_by_m, 0) |> Enum.count
+    cond do
+      Enum.all?(n_by_m, fn(x) -> x == [] end) ->
+        n_by_m
 
-    # Empty placeholder matrix n by m -> m by n
-    new_matrix = List.duplicate(List.duplicate(nil, n_size), m_size)
+      true ->
+        n_size = Enum.count(n_by_m)
+        m_size = Enum.at(n_by_m, 0) |> Enum.count
 
-    transposer(n_by_m, new_matrix, {m_size, n_size}, {0, 0})
-  end
+        # Empty placeholder matrix n by m -> m by n
+        new_matrix = List.duplicate(List.duplicate(nil, n_size), m_size)
 
-
-  def test do
-    a = [
-      [:line1col1, :line1col2],
-      [:line2col1, :line2col2],
-      [:line3col1, :line3col2],
-      [:line4col1, :line4col2],
-      [:line5col1, :line5col2],
-      [:line6col1, :line6col2]
-    ]
-    
-    IO.puts "\nTransposing the following Matrix : "
-    IO.inspect a
-    IO.puts "\nTo: \n"
-    IO.inspect transpose(a)
-
-    b = [
-      [:line1col1, :line1col2],
-      [:line2col1, :line2col2],
-      [:line3col1, :line3col2],
-    ]
-
-    IO.puts "\nTransposing the following Matrix : "
-    IO.inspect b
-    IO.puts "\nTo: \n"
-    IO.inspect transpose(b)
-
-    c = [
-      [:line1col1, :line1col2, :line1col3, :line1col4, :line1col5, :line1col6],
-      [:line2col1, :line2col2, :line2col3, :line2col4, :line2col5, :line2col6]
-    ]
-    
-    IO.puts "\nTransposing the following Matrix : "
-    IO.inspect c
-    IO.puts "\nTo: \n"
-
-    IO.inspect transpose(c)
+        transposer(n_by_m, new_matrix, {m_size, n_size}, {0, 0})
+    end
   end
 
 end
