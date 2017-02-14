@@ -1,7 +1,4 @@
-require ExUnit
 require DataExtractor
-
-ExUnit.start
 
 defmodule RunTest do
   use ExUnit.Case, async: true

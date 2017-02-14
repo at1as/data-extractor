@@ -21,13 +21,13 @@ defmodule DataExtractor do
 
 
   def get_filepath do
-    filepath = IO.gets "\nWhere is your file located?\n"
+    filepath = IO.gets "\n>> Where is your file located?\n"
     filepath = cleanup_str(filepath)
 
     if file_exists?(filepath) do
       filepath
     else
-      IO.puts "File not found."
+      IO.puts ">> File not found."
       get_filepath()
     end
   end
@@ -68,7 +68,7 @@ defmodule DataExtractor do
       "3" -> " "
       "4" -> "|"
        _  ->
-        IO.puts "Please enter a valid option"
+        IO.puts ">> Please enter a valid option"
         prompt_for_filetype()
     end
   end
@@ -100,7 +100,7 @@ defmodule DataExtractor do
         :all
 
       true ->
-        IO.puts "Please enter a valid value"
+        IO.puts ">> Please enter a valid value"
         target_columns()
     end
   end
@@ -139,7 +139,7 @@ defmodule DataExtractor do
       String.match?(operation, ~r/[0-9]+$/) and (Tuple.to_list(Integer.parse(operation)) |> Enum.at(0)) in 1..14 ->
         operation
       true ->
-        IO.puts "Enter a valid integer value"
+        IO.puts ">> Enter a valid integer value"
         operation_type()
     end
   end
@@ -201,16 +201,16 @@ defmodule DataExtractor do
     
     cond do
       rem(row, 2) == 0 ->
-        sorted_list = Enum.sort
-        first  = sorted_list.at(round(len/2))
-        second = sorted_list.at(round(len/2) + 1)
+        sorted_list = Enum.sort(row)
+        first  = Enum.at(sorted_list, round(len/2))
+        second = Enum.at(sorted_list, round(len/2) + 1)
 
         (first + second)/2
 
       rem(row, 2) == 1 ->
         row
         |> Enum.sort
-        |> List.at(round(((len - 1)/2) + 1))
+        |> Enum.at(round(((len - 1)/2) + 1))
     end
   end
 
@@ -237,89 +237,22 @@ defmodule DataExtractor do
 
   
   def printer(n_by_m_matrix, delimiter) do
+    IO.puts "\nOutput:\n"
     Enum.each(n_by_m_matrix, fn(row) -> 
       IO.puts Enum.join(row, delimiter)
     end)
+    IO.puts "\n"
   end
 
 
-  def main do
-    OptionParser.parse(System.argv())
+  def main(args) do
 
     filename  = get_filepath()
     filetype  = prompt_for_filetype()
     columns   = target_columns()
     operation = operation_type()
 
-    extract_from_file(filename, filetype, columns, operation)
+    extract_from_file(filename, filetype, columns, operation) |> printer(filetype)
   end
 
-
-  def test do
-
-    #IO.puts "SUM:"
-
-    #IO.puts "Starting #{:os.system_time(:millisecond)}\n"
-    #extract_from_file("./test/random_values.csv", ",", :all, "1") |> printer(", ")
-    #IO.puts "Done #{:os.system_time(:millisecond)}\n"
-
-    #IO.puts "Extract Cells"
-    #IO.puts "Starting #{:os.system_time(:millisecond)}\n"
-    #extract_from_file("./test/random_values.csv", ",", :all, "11") |> printer(", ")
-    #IO.puts "Done #{:os.system_time(:millisecond)}\n"
-    """
-    ## DEBUG
-    IO.puts "\nALL\n"
-    extract_from_file("example", ",", :all, "1") |> printer(", ")
-    IO.puts "---"
-    extract_from_file("example", ",", :all, "2") |> printer(", ")
-    IO.puts "---"
-    extract_from_file("example", ",", :all, "3") |> printer(", ")
-    IO.puts "---"
-    extract_from_file("example", ",", :all, "4") |> printer(", ")
-    IO.puts "---"
-    extract_from_file("example", ",", :all, "5") |> printer(", ")
-    IO.puts "---"
-    extract_from_file("example", ",", :all, "7") |> printer(", ")
-    IO.puts "---"
-    extract_from_file("example", ",", :all, "8") |> printer(", ")
-    IO.puts "---"
-    extract_from_file("example", ",", :all, "9") |> printer(", ")
-    IO.puts "---"
-    extract_from_file("example", ",", :all, "10") |> printer(", ")
-    IO.puts "---"
-    extract_from_file("example", ",", :all, "11") |> printer(", ")
-    IO.puts "---"
-    extract_from_file("example", ",", :all, "12") |> printer(", ")
-    
-    
-    IO.puts "\n2\n"
-    
-    IO.inspect extract_from_file("example", ",", "2", "1") ## FOR DEBUG
-    IO.inspect extract_from_file("example", ",", "2", "2") ## FOR DEBUG
-    IO.inspect extract_from_file("example", ",", "2", "3") ## FOR DEBUG
-    IO.inspect extract_from_file("example", ",", "2", "4") ## FOR DEBUG
-    IO.inspect extract_from_file("example", ",", "2", "7") ## FOR DEBUG
-    IO.inspect extract_from_file("example", ",", "2", "8") ## FOR DEBUG
-    IO.inspect extract_from_file("example", ",", "2", "9") ## FOR DEBUG
-    IO.inspect extract_from_file("example", ",", "2", "10") ## FOR DEBUG
-    IO.inspect extract_from_file("example", ",", "2", "11") ## FOR DEBUG
-    IO.inspect extract_from_file("example", ",", "2", "12") ## FOR DEBUG
-    
-
-    IO.puts "\n2-7\n"
-
-    IO.inspect extract_from_file("example", ",", "2-7", "1") ## FOR DEBUG
-    IO.inspect extract_from_file("example", ",", "2-7", "2") ## FOR DEBUG
-    IO.inspect extract_from_file("example", ",", "2-7", "3") ## FOR DEBUG
-    IO.inspect extract_from_file("example", ",", "2-7", "4") ## FOR DEBUG
-    IO.inspect extract_from_file("example", ",", "2-7", "7") ## FOR DEBUG
-    IO.inspect extract_from_file("example", ",", "2-7", "8") ## FOR DEBUG
-    IO.inspect extract_from_file("example", ",", "2-7", "9") ## FOR DEBUG
-    IO.inspect extract_from_file("example", ",", "2-7", "10") ## FOR DEBUG
-    IO.inspect extract_from_file("example", ",", "2-7", "11") ## FOR DEBUG
-    IO.inspect extract_from_file("example", ",", "2-7", "12") ## FOR DEBUG
-    """
-    nil
-  end
 end

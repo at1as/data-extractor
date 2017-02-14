@@ -1,7 +1,4 @@
-require ExUnit
 require Matrix
-
-ExUnit.start
 
 defmodule MatrixTest do
   use ExUnit.Case, async: true
