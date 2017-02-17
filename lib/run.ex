@@ -219,19 +219,19 @@ defmodule DataExtractor do
     row = Enum.map(row, &Float.parse(&1)) |>
           Enum.map(fn {x, _} -> x end)
 
-    case operation do
-      "1"  -> [ Enum.sum(row) ]
-      "2"  -> [ Enum.reduce(row, fn x, acc -> acc - x end) ]
-      "3"  -> [ Enum.reduce(row, fn x, acc -> acc * x end) ]
-      "4"  -> [ Enum.reduce(row, fn x, acc -> acc + x end) / Enum.count(row) ]
-      "5"  -> [ median(row) ]
-      "6"  -> row #TODO: STD DEVIATION
-      "7"  -> [ Enum.max(row) ]
-      "8"  -> [ Enum.min(row) ]
-      "9"  -> [ Enum.random(row) ]
-      "10" -> Enum.filter(row, fn(x) -> String.match?("#{x}", ~r/^[0-9.]+$/) end)       # NUMERIC
-      "11" -> Enum.filter(row, fn(x) -> String.match?("#{x}", ~r/^[a-zA-Z.]+$/) end)    # NON NUMERIC
-      "12" -> Enum.filter(row, fn(x) -> String.match?("#{x}", ~r/^[a-zA-Z0-9.]+$/) end) # ALPHANUMERIC
+    cond do
+      operation in ["1", "+"]     -> [ Enum.sum(row) ]
+      operation in ["2", "-"]     -> [ Enum.reduce(row, fn x, acc -> acc - x end) ]
+      operation in ["3", "*"]     -> [ Enum.reduce(row, fn x, acc -> acc * x end) ]
+      operation in ["4", "avg"]   -> [ Enum.reduce(row, fn x, acc -> acc + x end) / Enum.count(row) ]
+      operation in ["5", "med"]   -> [ median(row) ]
+      operation in ["6", "std"]   -> row #TODO: STD DEVIATION
+      operation in ["7", "max"]   -> [ Enum.max(row) ]
+      operation in ["8", "min"]   -> [ Enum.min(row) ]
+      operation in ["9", "rand"]  -> [ Enum.random(row) ]
+      operation in ["10", "numeric"]      -> Enum.filter(row, fn(x) -> String.match?("#{x}", ~r/^[0-9.]+$/) end)       # NUMERIC
+      operation in ["11", "nonnumeric"]   -> Enum.filter(row, fn(x) -> String.match?("#{x}", ~r/^[a-zA-Z.]+$/) end)    # NON NUMERIC (ALPHA)
+      operation in ["12", "alphanumeric"] -> Enum.filter(row, fn(x) -> String.match?("#{x}", ~r/^[a-zA-Z0-9.]+$/) end) # ALPHANUMERIC
     end
   end
 
@@ -270,7 +270,8 @@ defmodule DataExtractor do
     columns = if columns == "all", do: :all, else: columns
 
     if Enum.any?([filename, delimiter, columns, operation], fn(x) -> x == nil end) do
-      raise "\nInvalid args provided for --filename --delimiter --columns --operation"
+      IO.puts "\nInvalid args provided for --filename --delimiter --columns --operation\n"
+      System.halt
     end
 
     IO.puts "\nRunning with args: --filename #{filename} --delimiter #{delimiter} --columns #{columns} --operation #{operation}"
