@@ -17,7 +17,7 @@ defmodule DataExtractor.Mixfile do
   end
 
   defp deps do
-    [{:distillery, "~> 1.0"}] # Build binaries
+    []
   end
 end
 
