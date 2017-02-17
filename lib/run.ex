@@ -245,14 +245,44 @@ defmodule DataExtractor do
   end
 
 
-  def main(args) do
-
+  def interactive_cli() do
     filename  = get_filepath()
     filetype  = prompt_for_filetype()
     columns   = target_columns()
     operation = operation_type()
 
     extract_from_file(filename, filetype, columns, operation) |> printer(filetype)
+  end
+
+
+  def posix_cli(args) do
+      parsed_args = OptionParser.parse(args)
+
+      {kv_args, _, arg_list} = parsed_args
+
+      filename  = Keyword.get(kv_args, :filename)
+      {_, delimiter} = Enum.filter(arg_list, fn {a, _} -> a in ["-d", "--delimiter"] end) |> List.first || {_, ","}
+      {_, columns}   = Enum.filter(arg_list, fn {a, _} -> a in ["-c", "--columuns"] end)  |> List.first || {_, "all"}
+      {_, operation} = Enum.filter(arg_list, fn {a, _} -> a in ["-o", "--operation"] end) |> List.first
+      
+      if Enum.any?([filename, delimiter, columns, operation], fn(x) -> x == nil end) do
+        IO.puts "\nInvalid args provided for --filename --delimiter --columns --operation"
+        main(args)
+      end
+
+      IO.puts "Running with args: --filename #{filename} --delimiter #{delimiter} --columns #{columns} --operation #{operation}"
+      extract_from_file(filename, delimiter, columns, operation) |> printer(delimiter)
+  end
+
+
+  def main(args) do
+    
+    if "--interactive" in args || "-i" in args do
+      IO.puts "Starting Interactive CLI... "
+      interactive_cli()
+    else
+      posix_cli(args)
+    end
   end
 
 end
