@@ -200,18 +200,34 @@ defmodule DataExtractor do
     len = Enum.count(row)
     
     cond do
-      rem(row, 2) == 0 ->
+      rem(len, 2) == 0 ->
         sorted_list = Enum.sort(row)
-        first  = Enum.at(sorted_list, round(len/2))
-        second = Enum.at(sorted_list, round(len/2) + 1)
+        first  = Enum.at(sorted_list, round((len - 1)/2) - 1)
+        second = Enum.at(sorted_list, round((len - 1)/2))
 
         (first + second)/2
 
-      rem(row, 2) == 1 ->
+      rem(len, 2) == 1 ->
         row
         |> Enum.sort
-        |> Enum.at(round(((len - 1)/2) + 1))
+        |> Enum.at(round((len - 1)/2))
     end
+  end
+
+
+  def std_dev(row) do
+    mean = Enum.reduce(row, fn x, acc -> acc + x end) / Enum.count(row)
+
+    numerator = row
+    |> Enum.map(&(&1 - mean))
+    |> Enum.map(&(&1 * &1))
+    |> Enum.reduce(fn(x, y) -> x + y end) 
+    
+    
+    denominator = Enum.count(row)
+    
+    numerator / denominator
+    |> :math.sqrt
   end
 
 
@@ -225,7 +241,7 @@ defmodule DataExtractor do
       operation in ["3", "*"]     -> [ Enum.reduce(row, fn x, acc -> acc * x end) ]
       operation in ["4", "avg"]   -> [ Enum.reduce(row, fn x, acc -> acc + x end) / Enum.count(row) ]
       operation in ["5", "med"]   -> [ median(row) ]
-      operation in ["6", "std"]   -> row #TODO: STD DEVIATION
+      operation in ["6", "std"]   -> [ std_dev(row) ]
       operation in ["7", "max"]   -> [ Enum.max(row) ]
       operation in ["8", "min"]   -> [ Enum.min(row) ]
       operation in ["9", "rand"]  -> [ Enum.random(row) ]

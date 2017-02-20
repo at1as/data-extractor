@@ -10,6 +10,17 @@ defmodule RunTest do
     assert DataExtractor.cleanup_str("\n\n\nHello World!\n\n\n") == "Hello World!"
   end
 
+  test "median" do
+    assert DataExtractor.median([1,3,3,6,7,8,9]) == 6 # Odd Length
+    assert DataExtractor.median([1,2,3,4,5,6,8,9]) == 4.5 # Even Length
+  end
+
+  test "standard devation" do
+    assert DataExtractor.std_dev([2,4,4,4,5,5,7,9]) == 2
+    assert DataExtractor.std_dev([-5,1,8,7,2,994,3,-9]) == 328.44688973257155
+    assert DataExtractor.std_dev([0,0,0,0,0,0,0,-99]) == 32.74117247442431
+  end
+
   """
     Numeric Operation
       1) Sum
@@ -51,8 +62,18 @@ defmodule RunTest do
   end
 
   test "test matrix average" do
-    output  = DataExtractor.extract_from_file("./test/random_values.csv", ",", "1", "4") |> Enum.at(0)
-    assert output == [1]
+    output  = DataExtractor.extract_from_file("./test/random_values.csv", ",", :all, "4") |> Enum.at(0)
+    assert output == [1,2,5,65,4,654,7,6,123.321,543543,754,234,324,32412,123214.12321,543.34,123421.321,31.32] 
+  end
+  
+  #test "test matrix median" do
+    #  output  = DataExtractor.extract_from_file("./test/random_values.csv", ",", "1", "5") |> Enum.at(0)
+    #assert output == [1.0]
+    #end
+  
+  test "test matrix standard deviation" do
+    output  = DataExtractor.extract_from_file("./test/random_values.csv", ",", :all, "6") |> Enum.at(0)
+    assert output == [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0]
   end
 
 
